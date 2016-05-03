@@ -180,6 +180,9 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 				log.Printf("*** Failed to send message: %s\n", *sent.Description)
 			}
 		} else {
+			// typing...
+			b.SendChatAction(update.Message.Chat.Id, bot.ChatActionTyping)
+
 			// send photo
 			if filepath, err := captureImageSnap(); err == nil {
 				if sent := b.SendPhoto(update.Message.Chat.Id, &filepath, options); sent.Ok {
