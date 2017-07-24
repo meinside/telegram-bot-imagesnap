@@ -39,13 +39,13 @@ and edit values to yours:
 ## 2. Build and run
 
 ```bash
-$ go build -o telegrambot main.go
+$ go build
 ```
 
 and run it:
 
 ```bash
-$ ./telegrambot
+$ ./telegram-bot-imagesnap
 ```
 
 ## 3. Run as a service
@@ -69,7 +69,7 @@ and edit values:
 	<string>telegram-imagesnap</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/path/to/telegram-imagesnap/telegrambot</string>
+		<string>/path/to/telegram-bot-imagesnap/telegram-bot-imagesnap</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

@@ -120,12 +120,12 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 	// check username
 	var userId string
 	if update.Message.From.Username == nil {
-		log.Printf("*** Not allowed (no user name): %s\n", *update.Message.From.FirstName)
+		log.Printf("*** Not allowed (no user name): %s", update.Message.From.FirstName)
 		return false
 	}
 	userId = *update.Message.From.Username
 	if !isAvailableId(userId) {
-		log.Printf("*** Id not allowed: %s\n", userId)
+		log.Printf("*** Id not allowed: %s", userId)
 		return false
 	}
 
@@ -174,10 +174,10 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 		if len(message) > 0 {
 			// send message
-			if sent := b.SendMessage(update.Message.Chat.Id, &message, options); sent.Ok {
+			if sent := b.SendMessage(update.Message.Chat.Id, message, options); sent.Ok {
 				result = true
 			} else {
-				log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				log.Printf("*** Failed to send message: %s", *sent.Description)
 			}
 		} else {
 			// typing...
@@ -185,20 +185,20 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 			// send photo
 			if filepath, err := captureImageSnap(); err == nil {
-				if sent := b.SendPhoto(update.Message.Chat.Id, &filepath, options); sent.Ok {
+				if sent := b.SendPhoto(update.Message.Chat.Id, filepath, options); sent.Ok {
 					if err := os.Remove(filepath); err != nil {
-						log.Printf("*** Failed to delete temp file: %s\n", err)
+						log.Printf("*** Failed to delete temp file: %s", err)
 					}
 					result = true
 				} else {
-					log.Printf("*** Failed to send photo: %s\n", *sent.Description)
+					log.Printf("*** Failed to send photo: %s", *sent.Description)
 				}
 			} else {
-				log.Printf("*** Image capture failed: %s\n", err)
+				log.Printf("*** Image capture failed: %s", err)
 			}
 		}
 	} else {
-		log.Printf("*** Session does not exist for id: %s\n", userId)
+		log.Printf("*** Session does not exist for id: %s", userId)
 	}
 	pool.Unlock()
 
@@ -220,7 +220,7 @@ func main() {
 
 	// get info about this bot
 	if me := client.GetMe(); me.Ok {
-		log.Printf("Launching bot: @%s (%s)\n", *me.Result.Username, *me.Result.FirstName)
+		log.Printf("Launching bot: @%s (%s)", *me.Result.Username, me.Result.FirstName)
 
 		// delete webhook (getting updates will not work when wehbook is set up)
 		if unhooked := client.DeleteWebhook(); unhooked.Ok {
@@ -231,7 +231,7 @@ func main() {
 						processUpdate(b, update)
 					}
 				} else {
-					log.Printf("*** Error while receiving update (%s)\n", err.Error())
+					log.Printf("*** Error while receiving update (%s)", err.Error())
 				}
 			})
 		} else {
