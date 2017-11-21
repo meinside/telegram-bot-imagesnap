@@ -16,23 +16,23 @@ import (
 	"github.com/meinside/telegram-bot-imagesnap/helper"
 )
 
-type Status int16
+type status int16
 
 const (
-	StatusWaiting Status = iota
+	statusWaiting status = iota
 )
 
 const (
-	ImageSnapBin = "/usr/local/bin/imagesnap" // XXX - brew install imagesnap
-	TempDir      = "/tmp"
+	imageSnapBin = "/usr/local/bin/imagesnap" // XXX - brew install imagesnap
+	tempDir      = "/tmp"
 )
 
 type Session struct {
 	UserId        string
-	CurrentStatus Status
+	CurrentStatus status
 }
 
-type SessionPool struct {
+type sessionPool struct {
 	Sessions map[string]Session
 	sync.Mutex
 }
@@ -42,7 +42,7 @@ var apiToken string
 var monitorInterval int
 var isVerbose bool
 var availableIds []string
-var pool SessionPool
+var pool sessionPool
 var launched time.Time
 
 // keyboards
@@ -73,10 +73,10 @@ func init() {
 		for _, v := range availableIds {
 			sessions[v] = Session{
 				UserId:        v,
-				CurrentStatus: StatusWaiting,
+				CurrentStatus: statusWaiting,
 			}
 		}
-		pool = SessionPool{
+		pool = sessionPool{
 			Sessions: sessions,
 		}
 	} else {
@@ -143,7 +143,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 		}
 
 		var message string
-		var options map[string]interface{} = map[string]interface{}{
+		var options = map[string]interface{}{
 			"reply_markup": bot.ReplyKeyboardMarkup{
 				Keyboard:       allKeyboards,
 				ResizeKeyboard: true,
@@ -152,7 +152,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 		}
 
 		switch session.CurrentStatus {
-		case StatusWaiting:
+		case statusWaiting:
 			switch {
 			// start
 			case strings.HasPrefix(txt, conf.CommandStart):
@@ -185,7 +185,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 			// send photo
 			if filepath, err := captureImageSnap(); err == nil {
-				if sent := b.SendPhoto(update.Message.Chat.Id, filepath, options); sent.Ok {
+				if sent := b.SendPhoto(update.Message.Chat.Id, bot.InputFileFromFilepath(filepath), options); sent.Ok {
 					if err := os.Remove(filepath); err != nil {
 						log.Printf("*** Failed to delete temp file: %s", err)
 					}
@@ -206,12 +206,11 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 }
 
 func captureImageSnap() (filepath string, err error) {
-	filepath = fmt.Sprintf("%s/captured_`date +%Y%m%d_%H%M`.jpg", TempDir)
-	if _, err := exec.Command(ImageSnapBin, filepath).CombinedOutput(); err != nil {
+	filepath = fmt.Sprintf("%s/captured_`date +%Y%m%d_%H%M`.jpg", tempDir)
+	if _, err := exec.Command(imageSnapBin, filepath).CombinedOutput(); err != nil {
 		return "", err
-	} else {
-		return filepath, nil
 	}
+	return filepath, nil
 }
 
 func main() {
