@@ -27,8 +27,9 @@ const (
 	tempDir      = "/tmp"
 )
 
+// Session struct
 type Session struct {
-	UserId        string
+	UserID        string
 	CurrentStatus status
 }
 
@@ -72,7 +73,7 @@ func init() {
 		sessions := make(map[string]Session)
 		for _, v := range availableIds {
 			sessions[v] = Session{
-				UserId:        v,
+				UserID:        v,
 				CurrentStatus: statusWaiting,
 			}
 		}
@@ -85,7 +86,7 @@ func init() {
 }
 
 // check if given Telegram id is available
-func isAvailableId(id string) bool {
+func isAvailableID(id string) bool {
 	for _, v := range availableIds {
 		if v == id {
 			return true
@@ -118,14 +119,14 @@ func getStatus() string {
 // process incoming update from Telegram
 func processUpdate(b *bot.Bot, update bot.Update) bool {
 	// check username
-	var userId string
+	var userID string
 	if update.Message.From.Username == nil {
 		log.Printf("*** Not allowed (no user name): %s", update.Message.From.FirstName)
 		return false
 	}
-	userId = *update.Message.From.Username
-	if !isAvailableId(userId) {
-		log.Printf("*** Id not allowed: %s", userId)
+	userID = *update.Message.From.Username
+	if !isAvailableID(userID) {
+		log.Printf("*** Id not allowed: %s", userID)
 		return false
 	}
 
@@ -133,7 +134,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 	result := false
 
 	pool.Lock()
-	if session, exists := pool.Sessions[userId]; exists {
+	if session, exists := pool.Sessions[userID]; exists {
 		// text from message
 		var txt string
 		if update.Message.HasText() {
@@ -174,18 +175,18 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 		if len(message) > 0 {
 			// send message
-			if sent := b.SendMessage(update.Message.Chat.Id, message, options); sent.Ok {
+			if sent := b.SendMessage(update.Message.Chat.ID, message, options); sent.Ok {
 				result = true
 			} else {
 				log.Printf("*** Failed to send message: %s", *sent.Description)
 			}
 		} else {
 			// typing...
-			b.SendChatAction(update.Message.Chat.Id, bot.ChatActionTyping)
+			b.SendChatAction(update.Message.Chat.ID, bot.ChatActionTyping)
 
 			// send photo
 			if filepath, err := captureImageSnap(); err == nil {
-				if sent := b.SendPhoto(update.Message.Chat.Id, bot.InputFileFromFilepath(filepath), options); sent.Ok {
+				if sent := b.SendPhoto(update.Message.Chat.ID, bot.InputFileFromFilepath(filepath), options); sent.Ok {
 					if err := os.Remove(filepath); err != nil {
 						log.Printf("*** Failed to delete temp file: %s", err)
 					}
@@ -198,7 +199,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 			}
 		}
 	} else {
-		log.Printf("*** Session does not exist for id: %s", userId)
+		log.Printf("*** Session does not exist for id: %s", userID)
 	}
 	pool.Unlock()
 
